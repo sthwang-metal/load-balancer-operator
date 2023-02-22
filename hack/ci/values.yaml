@@ -1,2 +1,4 @@
 image:
   tag: 0.6.4
+
+testVal: "hello"

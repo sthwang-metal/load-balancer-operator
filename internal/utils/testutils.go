@@ -17,14 +17,14 @@ func CreateTestChart(outputDir string) (string, error) {
 	mchart.Metadata.APIVersion = "v2"
 	mchart.Metadata.Name = "lb-dummy"
 	mchart.Templates = []*chart.File{
-		{Name: "templates/test.yaml", Data: []byte("apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: lb-test\n  namespace: \"{{ .Release.Namespace }}\"\ndata:\n  test: test\n")},
+		{Name: "templates/test.yaml", Data: []byte("apiVersion: v1\nkind: ConfigMap\nmetadata:\n  name: lb-test\n  namespace: \"{{ .Release.Namespace }}\"\ndata:\n  test: {{ .Values.testVal }}\n")},
 	}
 
 	return chartutil.Save(mchart, outputDir)
 }
 
 func CreateTestValues(outputDir string, yamlString string) (string, error) {
-	file, err := os.Create(outputDir + "/values.yaml")
+	file, err := os.Create(outputDir + "/new-values.yaml")
 	if err != nil {
 		return "", err
 	}
@@ -35,5 +35,5 @@ func CreateTestValues(outputDir string, yamlString string) (string, error) {
 		return "", err
 	}
 
-	return outputDir + "/values.yaml", err
+	return outputDir + "/new-values.yaml", err
 }

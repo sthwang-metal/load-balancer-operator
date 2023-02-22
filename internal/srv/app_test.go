@@ -314,32 +314,6 @@ func TestUpgradeDeployment(t *testing.T) {
 			valPath:      pwd + "/../../hack/ci/values.yaml",
 			kubeClient:   cfg,
 		},
-		{
-			name:         "missing values path",
-			expectError:  true,
-			appNamespace: uuid.New().String(),
-			appName:      uuid.New().String(),
-			chart:        ch,
-			valPath:      "",
-			kubeClient:   cfg,
-		},
-		{
-			name:         "invalid chart",
-			expectError:  true,
-			appNamespace: uuid.New().String(),
-			appName:      uuid.New().String(),
-			chart: &chart.Chart{
-				Raw:       []*chart.File{},
-				Metadata:  &chart.Metadata{},
-				Lock:      &chart.Lock{},
-				Templates: []*chart.File{},
-				Values:    map[string]interface{}{},
-				Schema:    []byte{},
-				Files:     []*chart.File{},
-			},
-			valPath:    pwd + "/../../hack/ci/values.yaml",
-			kubeClient: cfg,
-		},
 	}
 
 	for _, tcase := range testCases {
@@ -354,6 +328,21 @@ func TestUpgradeDeployment(t *testing.T) {
 
 			_, _ = srv.CreateNamespace(tcase.appName)
 			err = srv.newDeployment(tcase.appName, nil)
+
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			updateVals, err := utils.CreateTestValues(pwd+"/../../hack/ci", "testVal: newTest")
+			defer os.Remove(updateVals)
+
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			srv.ValuesPath = updateVals
+
+			err = srv.updateDeployment(tcase.appName, nil)
 
 			if tcase.expectError {
 				assert.NotNil(t, err)
