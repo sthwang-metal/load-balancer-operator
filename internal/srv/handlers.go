@@ -97,6 +97,38 @@ func (s *Server) deleteMessageHandler(m *pubsubx.Message) error {
 }
 
 func (s *Server) updateMessageHandler(m *pubsubx.Message) error {
+	lbdata := events.LoadBalancerData{}
+
+	if err := s.parseLBData(&m.AdditionalData, &lbdata); err != nil {
+		s.Logger.Errorw("handler unable to parse loadbalancer data", "error", err)
+		return err
+	}
+
+	if _, err := s.CreateNamespace(lbdata.LoadBalancerID.String()); err != nil {
+		s.Logger.Errorw("handler unable to create required namespace", "error", err)
+		return err
+	}
+
+	overrides := []valueSet{}
+	for _, cpuFlag := range viper.GetStringSlice("helm-cpu-flag") {
+		overrides = append(overrides, valueSet{
+			helmKey: cpuFlag,
+			value:   lbdata.Resources.CPU,
+		})
+	}
+
+	for _, memFlag := range viper.GetStringSlice("helm-memory-flag") {
+		overrides = append(overrides, valueSet{
+			helmKey: memFlag,
+			value:   lbdata.Resources.Memory,
+		})
+	}
+
+	if err := s.updateDeployment(lbdata.LoadBalancerID.String(), overrides); err != nil {
+		s.Logger.Errorw("handler unable to update loadbalancer", "error", err, "load-balancer-id", lbdata.LoadBalancerID.String())
+		return err
+	}
+
 	return nil
 }
 

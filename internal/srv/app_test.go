@@ -264,6 +264,112 @@ func TestNewDeployment(t *testing.T) {
 	}
 }
 
+func TestUpgradeDeployment(t *testing.T) {
+	type testCase struct {
+		name         string
+		appNamespace string
+		appName      string
+		expectError  bool
+		chart        *chart.Chart
+		kubeClient   *rest.Config
+		valPath      string
+	}
+
+	testDir, err := os.MkdirTemp("", "test-new-deployment")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	defer os.RemoveAll(testDir)
+
+	chartPath, err := utils.CreateTestChart(testDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ch, err := loader.Load(chartPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	env := envtest.Environment{}
+
+	cfg, err := env.Start()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testCases := []testCase{
+		{
+			name:         "valid yaml",
+			expectError:  false,
+			appNamespace: uuid.New().String(),
+			appName:      uuid.New().String(),
+			chart:        ch,
+			valPath:      pwd + "/../../hack/ci/values.yaml",
+			kubeClient:   cfg,
+		},
+		{
+			name:         "missing values path",
+			expectError:  true,
+			appNamespace: uuid.New().String(),
+			appName:      uuid.New().String(),
+			chart:        ch,
+			valPath:      "",
+			kubeClient:   cfg,
+		},
+		{
+			name:         "invalid chart",
+			expectError:  true,
+			appNamespace: uuid.New().String(),
+			appName:      uuid.New().String(),
+			chart: &chart.Chart{
+				Raw:       []*chart.File{},
+				Metadata:  &chart.Metadata{},
+				Lock:      &chart.Lock{},
+				Templates: []*chart.File{},
+				Values:    map[string]interface{}{},
+				Schema:    []byte{},
+				Files:     []*chart.File{},
+			},
+			valPath:    pwd + "/../../hack/ci/values.yaml",
+			kubeClient: cfg,
+		},
+	}
+
+	for _, tcase := range testCases {
+		t.Run(tcase.name, func(t *testing.T) {
+			srv := Server{
+				Context:    context.TODO(),
+				Logger:     zap.NewNop().Sugar(),
+				KubeClient: cfg,
+				ValuesPath: tcase.valPath,
+				Chart:      tcase.chart,
+			}
+
+			_, _ = srv.CreateNamespace(tcase.appName)
+			err = srv.newDeployment(tcase.appName, nil)
+
+			if tcase.expectError {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+
+	err = env.Stop()
+
+	if err != nil {
+		panic(err)
+	}
+}
+
 func TestNewHelmClient(t *testing.T) {
 	type testCase struct {
 		name         string
