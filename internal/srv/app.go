@@ -191,7 +191,6 @@ func (s *Server) updateDeployment(name string, overrides []valueSet) error {
 	s.Logger.Infof("%s deployed to %s successfully", releaseName, name)
 
 	return nil
-
 }
 
 // newDeployment deploys a loadBalancer based upon the configuration provided
