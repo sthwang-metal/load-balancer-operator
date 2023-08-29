@@ -537,6 +537,8 @@ github.com/nats-io/jwt/v2 v2.4.1 h1:Y35W1dgbbz2SQUYDPCaclXcuqleVmpbRa7646Jf2EX4=
 github.com/nats-io/jwt/v2 v2.4.1/go.mod h1:24BeQtRwxRV8ruvC4CojXlx/WQ/VjuwlYiH+vu/+ibI=
 github.com/nats-io/nats-server/v2 v2.9.17 h1:gFpUQ3hqIDJrnqog+Bl5vaXg+RhhYEZIElasEuRn2tw=
 github.com/nats-io/nats-server/v2 v2.9.17/go.mod h1:eQysm3xDZmIjfkjr7DuD9DjRFpnxQc2vKVxtEg0Dp6s=
+github.com/nats-io/nats-server/v2 v2.9.19 h1:OF9jSKZGo425C/FcVVIvNgpd36CUe7aVTTXEZRJk6kA=
+github.com/nats-io/nats-server/v2 v2.9.19/go.mod h1:aTb/xtLCGKhfTFLxP591CMWfkdgBmcUUSkiSOe5A3gw=
 github.com/nats-io/nats.go v1.27.1 h1:OuYnal9aKVSnOzLQIzf7554OXMCG7KbaTkCSBHRcSoo=
 github.com/nats-io/nats.go v1.27.1/go.mod h1:XpbWUlOElGwTYbMR7imivs7jJj9GtK7ypv321Wp6pjc=
 github.com/nats-io/nkeys v0.4.4 h1:xvBJ8d69TznjcQl9t6//Q5xXuVhyYiSos6RPtvQNTwA=
@@ -707,6 +709,8 @@ go.etcd.io/etcd/client/pkg/v3 v3.5.0/go.mod h1:IJHfcCEKxYu1Os13ZdwCwIUTUVGYTSAM3
 go.etcd.io/etcd/client/v2 v2.305.0/go.mod h1:h9puh54ZTgAKtEbut2oe9P4L/oqKCVB6xsXlzd7alYQ=
 go.infratographer.com/ipam-api v0.0.3-0.20230627135853-8acda8f15bbe h1:FEVVwb8uQyhHnS/JPLiESecdtbePQ44hss7GiG0xI4o=
 go.infratographer.com/ipam-api v0.0.3-0.20230627135853-8acda8f15bbe/go.mod h1:AYzfwMo3pcgtc/9FbkJIJ0XYsGFCYoKOmeriwEp3pzk=
+go.infratographer.com/ipam-api v0.0.4 h1:MDCHXJcl9o4XcM/Lu0xUxkrYEYzIfmtvCEcTuJebb5s=
+go.infratographer.com/ipam-api v0.0.4/go.mod h1:thDypoVMMbTmR1cpOkT2yMNylC/QB233Slm7XTwxc4g=
 go.infratographer.com/loadbalancer-manager-haproxy v0.0.4 h1:Av+aL1duiX6hot+wrRGk3ZoChF3es3Zmmroj8NP0H9I=
 go.infratographer.com/loadbalancer-manager-haproxy v0.0.4/go.mod h1:9JG9KPPEvL46GMAX4e5ZEx3SQgxxOk09oTh0uMVLqhE=
 go.infratographer.com/x v0.3.7 h1:kkykoVtC8XrmvC4oZwHWa/15+dv9RhQHgSm8KoEb/Nc=

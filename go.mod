@@ -98,7 +98,7 @@ require (
 	github.com/monochromegane/go-gitignore v0.0.0-20200626010858-205db1a8cc00 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/nats-io/nats-server/v2 v2.9.17 // indirect
+	github.com/nats-io/nats-server/v2 v2.9.19 // indirect
 	github.com/nats-io/nkeys v0.4.4 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
@@ -160,7 +160,7 @@ require (
 require (
 	github.com/gobuffalo/packr/v2 v2.8.3
 	github.com/labstack/echo/v4 v4.11.1
-	go.infratographer.com/ipam-api v0.0.3-0.20230627135853-8acda8f15bbe
+	go.infratographer.com/ipam-api v0.0.4
 	golang.org/x/exp v0.0.0-20230713183714-613f0c0eb8a1
 	sigs.k8s.io/controller-runtime v0.14.5
 )
