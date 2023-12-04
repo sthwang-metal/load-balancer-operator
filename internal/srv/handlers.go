@@ -128,7 +128,7 @@ func prepareLoadBalancer[M Message](ctx context.Context, msg M, s *Server) (*loa
 		// TODO: this is a hack to get around the fact that we can't lookup a loadbalancer
 		// that has already been deleted. So if we have a delete event, we just grab the LB ID
 		// from the message and don't attempt to look it up as we don't need the actual data.
-		if msg.GetEventType() == string(events.DeleteChangeType) {
+		if msg.GetEventType() == string(events.DeleteChangeType) && msg.GetSubject().Prefix() == LBPrefix {
 			lb.isLoadBalancer(msg.GetSubject(), msg.GetAddSubjects())
 
 			span.SetAttributes(attribute.Bool("lbdata-lookup", false))

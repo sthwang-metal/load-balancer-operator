@@ -33,7 +33,7 @@ func (v helmvalues) generateLBHelmVals(lb *loadBalancer, s *Server) {
 
 	// add IP address if it is available; will be empty if an IP is not yet assigned
 	// while multiple addresses are possible, we only support one for now
-	if len(lb.lbData.IPAddresses) > 0 {
+	if lb.lbData.IPAddresses != nil && len(lb.lbData.IPAddresses) > 0 {
 		v.StringValues = append(v.StringValues, fmt.Sprintf("%s=%s", managedHelmKeyPrefix+".lbIP", lb.lbData.IPAddresses[0].IP))
 	}
 
