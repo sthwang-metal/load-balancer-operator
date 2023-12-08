@@ -106,7 +106,7 @@ func (s *Server) checkChannel(ctx context.Context, lb *loadBalancer) *runner {
 
 		r := NewRunner(ctx, process)
 
-		s.LoadBalancers[lb.lbData.ID] = r
+		s.LoadBalancers[lb.loadBalancerID.String()] = r
 		ch = r
 	} else {
 		span.SetAttributes(attribute.Bool("channel-exists", true))
