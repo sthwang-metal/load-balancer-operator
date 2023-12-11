@@ -3,7 +3,7 @@ apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
 kind: Deployment
 metadata:
   name: {{ template "common.names.fullname" . }}
-  labels: 
+  labels:
     {{- include "common.labels.standard" . | nindent 4 }}
     {{- if .Values.operator.extraLabels }}
     {{- toYaml .Values.operator.extraLabels | nindent 4 }}
@@ -19,7 +19,7 @@ spec:
     matchLabels: {{- include "common.labels.matchLabels" . | nindent 6 }}
   template:
     metadata:
-      labels: 
+      labels:
       {{- include "common.labels.standard" . | nindent 8 }}
       {{- if .Values.operator.extraLabels }}
       {{- toYaml .Values.operator.extraLabels | nindent 8 }}
@@ -113,5 +113,3 @@ spec:
         - name: chart-config
           configMap:
             name: "{{ include "common.names.fullname" . }}-lb-chart"
-            
-

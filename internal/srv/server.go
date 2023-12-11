@@ -5,6 +5,7 @@ import (
 
 	"github.com/lestrrat-go/backoff/v2"
 	lbapi "go.infratographer.com/load-balancer-api/pkg/client"
+	metadata "go.infratographer.com/metadata-api/pkg/client"
 	"go.infratographer.com/x/echox"
 	"go.infratographer.com/x/events"
 	"go.uber.org/zap"
@@ -22,6 +23,7 @@ type Server struct {
 	APIClient        *lbapi.Client
 	BackoffConfig    backoff.Policy
 	IPAMClient       *ipamclient.Client
+	MetadataClient   *metadata.Client
 	Echo             *echox.Server
 	Context          context.Context
 	EventsConnection events.Connection

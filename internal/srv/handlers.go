@@ -4,12 +4,15 @@ import (
 	"context"
 	"strings"
 
+	lbmeta "go.infratographer.com/load-balancer-api/pkg/metadata"
 	"go.infratographer.com/x/events"
 	"go.infratographer.com/x/gidx"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/codes"
 	"golang.org/x/exp/slices"
+
+	"go.infratographer.com/load-balancer-operator/internal/config"
 )
 
 func (s *Server) locationCheck(i gidx.PrefixedID) bool {
@@ -160,9 +163,27 @@ func prepareLoadBalancer[M Message](ctx context.Context, msg M, s *Server) (*loa
 }
 
 func process(t *lbTask) {
+	var (
+		status *lbmeta.LoadBalancerStatus
+		err    error
+	)
+
+	if t.evt != string(events.DeleteChangeType) {
+		status, err = lbmeta.GetLoadbalancerStatus(t.lb.lbData.Metadata.Statuses, config.AppConfig.Metadata.StatusNamespaceID, lbmeta.LoadBalancerAPISource)
+		if err != nil {
+			// note the loadbalancer state is off/amiss, continue processing event
+			t.srv.Logger.Warnw("failed to find loadbalancer state", "error", err, "loadbalancer", t.lb.loadBalancerID, "event", t.evt)
+		}
+	}
+
 	switch {
 	case t.evt == "ip-address.assigned":
 		t.srv.Logger.Debugw("ip address processed. updating loadbalancer", "loadbalancer", t.lb.loadBalancerID.String())
+
+		if status != nil && status.State == lbmeta.LoadBalancerStateTerminating {
+			t.srv.Logger.Infow("ignoring event", "loadbalancer", t.lb.loadBalancerID, "loadbalancerState", status.State, "event", t.evt)
+			return
+		}
 
 		if err := t.srv.createDeployment(t.ctx, t.lb); err != nil {
 			t.srv.Logger.Errorw("unable to update loadbalancer", "error", err, "loadbalancer", t.lb.loadBalancerID.String())
@@ -170,18 +191,33 @@ func process(t *lbTask) {
 
 		return
 	case t.evt == string(events.CreateChangeType) && t.lb.lbType == typeLB:
-		t.srv.Logger.Debugw("creating loadbalancer", "loadbalancer", t.lb.loadBalancerID.String())
+		if status != nil && status.State == lbmeta.LoadBalancerStateTerminating {
+			t.srv.Logger.Infow("ignoring event", "loadbalancer", t.lb.loadBalancerID, "loadbalancerState", status.State, "event", t.evt)
+			return
+		}
+
+		t.srv.Logger.Debugw("creating loadbalancer", "loadbalancer", t.lb.loadBalancerID)
 
 		if err := t.srv.processLoadBalancerChangeCreate(t.ctx, t.lb); err != nil {
-			t.srv.Logger.Errorw("handler unable to create/update loadbalancer", "error", err, "loadbalancerID", t.lb.loadBalancerID.String())
+			t.srv.Logger.Errorw("handler unable to create loadbalancer", "error", err, "loadbalancer", t.lb.loadBalancerID)
+		} else {
+			sts := &lbmeta.LoadBalancerStatus{State: lbmeta.LoadBalancerStateActive}
+			if err := t.srv.LoadBalancerStatusUpdate(t.ctx, t.lb.loadBalancerID, sts); err != nil {
+				t.srv.Logger.Errorw("failed to update metadata", "error", err, "loadbalancer", t.lb.loadBalancerID, "loadbalancerState", sts.State)
+			}
 		}
 
 		return
 	case t.evt == string(events.DeleteChangeType) && t.lb.lbType == typeLB:
-		t.srv.Logger.Debugw("deleting loadbalancer", "loadbalancer", t.lb.loadBalancerID.String())
+		t.srv.Logger.Debugw("deleting loadbalancer", "loadbalancer", t.lb.loadBalancerID)
 
 		if err := t.srv.processLoadBalancerChangeDelete(t.ctx, t.lb); err != nil {
-			t.srv.Logger.Errorw("handler unable to delete loadbalancer", "error", err, "loadbalancerID", t.lb.loadBalancerID.String())
+			t.srv.Logger.Errorw("handler unable to delete loadbalancer", "error", err, "loadbalancer", t.lb.loadBalancerID)
+		}
+
+		sts := &lbmeta.LoadBalancerStatus{State: lbmeta.LoadBalancerStateDeleted}
+		if err := t.srv.LoadBalancerStatusUpdate(t.ctx, t.lb.loadBalancerID, sts); err != nil {
+			t.srv.Logger.Errorw("failed to update metadata", "error", err, "loadbalancer", t.lb.loadBalancerID, "loadbalancerState", sts.State)
 		}
 
 		ch, ok := t.srv.LoadBalancers[t.lb.loadBalancerID.String()]
@@ -196,6 +232,11 @@ func process(t *lbTask) {
 		t.srv.Logger.Debugw("ip address unassigned. updating loadbalancer", "loadbalancer", t.lb.loadBalancerID.String())
 	default:
 		t.srv.Logger.Debugw("updating loadbalancer", "loadbalancer", t.lb.loadBalancerID.String())
+
+		if status != nil && status.State == lbmeta.LoadBalancerStateTerminating {
+			t.srv.Logger.Infow("ignoring event", "loadbalancer", t.lb.loadBalancerID, "loadbalancerState", status.State, "event", t.evt)
+			return
+		}
 
 		if err := t.srv.processLoadBalancerChangeUpdate(t.ctx, t.lb); err != nil {
 			t.srv.Logger.Errorw("handler unable to update loadbalancer", "error", err, "loadbalancerID", t.lb.loadBalancerID.String())

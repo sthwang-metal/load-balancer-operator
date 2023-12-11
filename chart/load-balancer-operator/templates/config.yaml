@@ -11,6 +11,9 @@ data:
   LOADBALANCEROPERATOR_API_ENDPOINT: "{{ .Values.operator.api.endpoint }}"
   LOADBALANCEROPERATOR_CHART_PATH: "/chart.tgz"
   LOADBALANCEROPERATOR_CHART_VALUES_PATH: "/lb-values.yaml"
+  LOADBALANCEROPERATOR_METADATA_ENDPOINT: "{{ .Values.operator.metadata.endpoint }}"
+  LOADBALANCEROPERATOR_METADATA_SOURCE: "{{ .Values.operator.metadata.source }}"
+  LOADBALANCEROPERATOR_METADATA_STATUS_NAMESPACE_ID: "{{ .Values.operator.metadata.statusNamespaceID }}"
   LOADBALANCEROPERATOR_OIDC_CLIENT_ISSUER: "{{ .Values.operator.api.oidc.client.issuer }}"
 {{- if .Values.operator.tracing.enabled }}
   LOADBALANCEROPERATOR_TRACING_ENABLED: "{{ .Values.operator.tracing.enabled }}"

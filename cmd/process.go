@@ -19,6 +19,7 @@ import (
 
 	"go.infratographer.com/ipam-api/pkg/ipamclient"
 	lbapi "go.infratographer.com/load-balancer-api/pkg/client"
+	metadata "go.infratographer.com/metadata-api/pkg/client"
 	"go.infratographer.com/x/echox"
 	"go.infratographer.com/x/events"
 	"go.infratographer.com/x/oauth2x"
@@ -90,6 +91,15 @@ func init() {
 
 	processCmd.PersistentFlags().Int("loadbalancer-metrics-port", DefaultLBMetricsPort, "port to expose deployed load balancer metrics on")
 	viperx.MustBindFlag(viper.GetViper(), "loadbalancer-metrics-port", processCmd.PersistentFlags().Lookup("loadbalancer-metrics-port"))
+
+	processCmd.Flags().String("metadata-status-namespace-id", "", "loadbalancer metadata status namespace id")
+	viperx.MustBindFlag(viper.GetViper(), "metadata.status-namespace-id", processCmd.Flags().Lookup("metadata-status-namespace-id"))
+
+	processCmd.Flags().String("metadata-endpoint", "", "metadata-api endpoint")
+	viperx.MustBindFlag(viper.GetViper(), "metadata.endpoint", processCmd.Flags().Lookup("metadata-endpoint"))
+
+	processCmd.Flags().String("metadata-source", "load-balancer-operator", "metadata-api endpoint")
+	viperx.MustBindFlag(viper.GetViper(), "metadata.source", processCmd.Flags().Lookup("metadata-source"))
 
 	rootCmd.AddCommand(processCmd)
 }
@@ -166,9 +176,13 @@ func process(ctx context.Context, logger *zap.SugaredLogger) error {
 		oauthHTTPClient := oauth2x.NewClient(ctx, oidcTS)
 		server.APIClient = lbapi.NewClient(viper.GetString("supergraph-endpoint"), lbapi.WithHTTPClient(oauthHTTPClient))
 		server.IPAMClient = ipamclient.NewClient(viper.GetString("supergraph-endpoint"), ipamclient.WithHTTPClient(oauthHTTPClient))
+		server.MetadataClient = metadata.New(config.AppConfig.Metadata.Endpoint,
+			metadata.WithHTTPClient(oauthHTTPClient),
+		)
 	} else {
 		server.APIClient = lbapi.NewClient(viper.GetString("supergraph-endpoint"))
 		server.IPAMClient = ipamclient.NewClient(viper.GetString("supergraph-endpoint"))
+		server.MetadataClient = metadata.New(config.AppConfig.Metadata.Endpoint)
 	}
 
 	err = otelx.InitTracer(config.AppConfig.Tracing, appName, logger)

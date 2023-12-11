@@ -55,6 +55,16 @@ operator:
     eventTopics: []
 
     locations: []
+
+  metadata:
+    # endpoint metadata endpoint to use
+    endpoint: ""
+    # source source of this metatdata (i.e. application name / location)
+    source: ""
+    # statusNamespaceID the metadata status namespace ID housing loadbalancer status'
+    statusNamespaceID: ""
+
+
   tracing:
     # enabled is true if OpenTelemetry tracing should be enabled for load-balancer-operator
     enabled: false
