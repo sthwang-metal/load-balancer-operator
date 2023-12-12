@@ -15,6 +15,9 @@ func DummyAPI(id string) *httptest.Server {
 			"data": {
 				"loadBalancer": {
 				  "id": "%s",
+				  "location": {
+					"id": "lctnloc-testing"
+				  },
 				  "name": "a-very-nice-lb",
 				  "ports": {
 					"edges": [

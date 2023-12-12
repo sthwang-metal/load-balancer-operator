@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/lestrrat-go/backoff/v2"
 	"go.opentelemetry.io/otel"
 	"helm.sh/helm/v3/pkg/action"
@@ -25,8 +27,8 @@ const (
 
 func (s *Server) removeNamespace(ctx context.Context, ns string) error {
 	s.Logger.Debugw("removing namespace", "namespace", ns)
-	kc, err := kubernetes.NewForConfig(s.KubeClient)
 
+	kc, err := kubernetes.NewForConfig(s.KubeClient)
 	if err != nil {
 		s.Logger.Debugw("unable to authenticate against kubernetes cluster", "error", err)
 		return err
@@ -63,8 +65,10 @@ func (s *Server) CreateNamespace(ctx context.Context, hash string) (*v1.Namespac
 		},
 		ObjectMetaApplyConfiguration: &applymetav1.ObjectMetaApplyConfiguration{
 			Name: &hash,
-			Labels: map[string]string{"com.infratographer.lb-operator/managed": "true",
-				"com.infratographer.lb-operator/lb-id": hash},
+			Labels: map[string]string{
+				"com.infratographer.lb-operator/managed": "true",
+				"com.infratographer.lb-operator/lb-id":   hash,
+			},
 		},
 		Spec:   &applyv1.NamespaceSpecApplyConfiguration{},
 		Status: &applyv1.NamespaceStatusApplyConfiguration{},
@@ -104,7 +108,6 @@ func attachRoleBinding(ctx context.Context, client *kubernetes.Clientset, namesp
 	}
 
 	_, err := client.RbacV1().RoleBindings(namespace).Apply(ctx, &apSpec, metav1.ApplyOptions{FieldManager: "loadbalanceroperator"})
-
 	if err != nil {
 		return err
 	}
@@ -248,6 +251,11 @@ func hashLBName(name string) string {
 }
 
 func (s *Server) createDeployment(ctx context.Context, lb *loadBalancer) error {
+	if !slices.Contains(s.Locations, lb.lbData.Location.ID) {
+		s.Logger.Warn("load-balancer location not found in operator watch locations, skipping...", "location", lb.lbData.Location.ID, "loadBalancer", lb.loadBalancerID)
+		return nil
+	}
+
 	hash := hashLBName(lb.loadBalancerID.String())
 
 	releaseName := fmt.Sprintf("lb-%s", hash)

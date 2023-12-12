@@ -61,6 +61,7 @@ func (suite *srvTestSuite) TestProcessLoadBalancerChangeCreate() { //nolint:gove
 		ChartPath:     cp,
 		ValuesPath:    pwd + "/../../hack/ci/values.yaml",
 		LoadBalancers: make(map[string]*runner),
+		Locations:     []string{"lctnloc-testing"},
 	}
 
 	testCases := []testCase{
@@ -70,8 +71,9 @@ func (suite *srvTestSuite) TestProcessLoadBalancerChangeCreate() { //nolint:gove
 			cfg:            suite.Kubeenv.Config,
 			chart:          ch,
 			msg: pubsubx.ChangeMessage{
-				EventType: "create",
-				SubjectID: "loadbal-lkjasdlfkjasdf",
+				EventType:            "create",
+				SubjectID:            "loadbal-lkjasdlfkjasdf",
+				AdditionalSubjectIDs: []gidx.PrefixedID{"lctnloc-testing"},
 			},
 		},
 		{
@@ -80,8 +82,9 @@ func (suite *srvTestSuite) TestProcessLoadBalancerChangeCreate() { //nolint:gove
 			chart:          ch,
 			cfg:            suite.Kubeenv.Config,
 			msg: pubsubx.ChangeMessage{
-				EventType: "create",
-				SubjectID: "loadbal-reallyreallyreallyreallyreallyreallylongreallylong",
+				EventType:            "create",
+				SubjectID:            "loadbal-reallyreallyreallyreallyreallyreallylongreallylong",
+				AdditionalSubjectIDs: []gidx.PrefixedID{"lctnloc-testing"},
 			},
 		},
 	}
@@ -234,6 +237,7 @@ func (suite *srvTestSuite) TestProcessLoadBalancerUpdate() { //nolint:govet
 		ChangeTopics:  []string{"foo", "bar"},
 		ChartPath:     cp,
 		ValuesPath:    pwd + "/../../hack/ci/values.yaml",
+		Locations:     []string{"lctnloc-testing"},
 	}
 
 	id := gidx.MustNewID("loadbal")
