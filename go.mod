@@ -1,6 +1,6 @@
 module go.infratographer.com/load-balancer-operator
 
-go 1.20
+go 1.21
 
 replace (
 	github.com/docker/cli => github.com/docker/cli v20.10.19+incompatible

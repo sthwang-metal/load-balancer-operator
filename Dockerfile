@@ -1,4 +1,6 @@
-FROM golang:1.20 as build
+ARG GO_VERSION=1.21
+
+FROM mcr.microsoft.com/vscode/devcontainers/go:1-${GO_VERSION}-bullseye
 
 WORKDIR /go/src/app
 COPY . .

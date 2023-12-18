@@ -6,6 +6,7 @@ metadata:
     {{- include "common.labels.standard" . | nindent 4 }}
 data:
   LOADBALANCEROPERATOR_EVENTS_NATS_SUBSCRIBEPREFIX: "{{ .Values.operator.events.topicPrefix }}"
+  LOADBALANCEROPERATOR_EVENTS_NATS_PUBLISHPREFIX: "{{ .Values.operator.events.topicPrefix }}"
   LOADBALANCEROPERATOR_EVENTS_NATS_URL: "{{ .Values.operator.events.connectionURL }}"
   LOADBALANCEROPERATOR_EVENTS_NATS_QUEUEGROUP: "{{ .Values.operator.events.queueGroup }}"
   LOADBALANCEROPERATOR_API_ENDPOINT: "{{ .Values.operator.api.endpoint }}"
