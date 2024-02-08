@@ -1,6 +1,8 @@
 linters-settings:
   goimports:
     local-prefixes: go.infratographer.com/load-balancer-operator
+  wsl:
+    allow-trailing-comment: true
 
 linters:
   enable:

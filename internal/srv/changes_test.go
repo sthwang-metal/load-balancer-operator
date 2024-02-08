@@ -106,7 +106,6 @@ func (suite *srvTestSuite) TestProcessLoadBalancerChangeCreate() { //nolint:gove
 			} else {
 				assert.Nil(suite.T(), err)
 			}
-
 			// TODO: check if the namespace was created
 			// TODO: check if the helm release exists
 		})
@@ -197,7 +196,6 @@ func (suite *srvTestSuite) TestProcessLoadBalancerDelete() { //nolint:govet
 				assert.Error(suite.T(), err)
 			} else {
 				assert.Nil(suite.T(), err)
-
 				// TODO: check if the release is missing
 				// TODO: check if the namespace is missing
 			}

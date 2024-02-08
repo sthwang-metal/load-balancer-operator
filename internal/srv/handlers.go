@@ -142,8 +142,10 @@ func prepareLoadBalancer[M Message](ctx context.Context, msg M, s *Server) (*loa
 				err = errLoadBalancerInit
 				span.RecordError(err)
 				span.SetStatus(codes.Error, err.Error())
+
 				return nil, err
 			}
+
 			span.SetAttributes(attribute.Bool("lbdata-lookup", true))
 		}
 

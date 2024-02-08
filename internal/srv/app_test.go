@@ -503,6 +503,7 @@ func (suite *srvTestSuite) TestAttachRoleBinding() {
 					t.Fatal(err)
 				}
 			}
+
 			err = attachRoleBinding(srv.Context, cli, tcase.namespace)
 
 			if tcase.expectErr {
