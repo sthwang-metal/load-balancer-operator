@@ -21,7 +21,7 @@ var AppConfig struct {
 	Tracing            otelx.Config
 	OIDC               OIDCClientConfig
 	Metadata           MetadataConfig
-	ReconcilerInterval time.Duration
+	ReconcilerInterval time.Duration `mapstructure:"reconciler-interval"`
 }
 
 // MetadataConfig stores the configuration for metadata

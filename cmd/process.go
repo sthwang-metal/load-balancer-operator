@@ -49,7 +49,8 @@ var (
 )
 
 const (
-	DefaultLBMetricsPort = 29782
+	DefaultLBMetricsPort      = 29782
+	defaultReconcilerInterval = 15 * time.Minute
 )
 
 func init() {
@@ -100,6 +101,9 @@ func init() {
 
 	processCmd.Flags().String("metadata-source", "load-balancer-operator", "metadata-api endpoint")
 	viperx.MustBindFlag(viper.GetViper(), "metadata.source", processCmd.Flags().Lookup("metadata-source"))
+
+	processCmd.PersistentFlags().Duration("reconciler-interval", defaultReconcilerInterval, "interval to reconcile the state of the operator with the lb-api")
+	viperx.MustBindFlag(viper.GetViper(), "reconciler-interval", processCmd.PersistentFlags().Lookup("reconciler-interval"))
 
 	rootCmd.AddCommand(processCmd)
 }
@@ -233,6 +237,10 @@ func validateFlags() error {
 
 	if len(viper.GetStringSlice("event-topics")) < 1 {
 		return errRequiredTopics
+	}
+
+	if config.AppConfig.ReconcilerInterval <= 0 {
+		return errInvalidInterval
 	}
 
 	return nil

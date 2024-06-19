@@ -12,6 +12,7 @@ var (
 	// ErrChartPath is returned when a Helm chart path is missing
 	errChartPath         = errors.New("chart path is required and cannot be empty")
 	errRequiredTopics    = errors.New("at least one topic is required")
+	errInvalidInterval   = errors.New("reconciler interval must be greater than 0")
 	errInvalidKubeClient = errors.New("failed to create kubernetes client")
 	errInvalidHelmChart  = errors.New("failed to load helm chart")
 )

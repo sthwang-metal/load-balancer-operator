@@ -60,6 +60,11 @@ func (s *Server) Run(ctx context.Context) error {
 	}()
 
 	go func() {
+		if config.AppConfig.ReconcilerInterval <= 0 {
+			s.Logger.Warn("reconciler interval not set")
+			return
+		}
+
 		ticker := time.NewTicker(config.AppConfig.ReconcilerInterval)
 
 		for {
