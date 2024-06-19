@@ -55,6 +55,8 @@ operator:
     eventTopics: []
 
     locations: []
+  reconciler:
+    interval: 15m
 
   metadata:
     # endpoint metadata endpoint to use

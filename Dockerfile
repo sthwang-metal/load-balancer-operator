@@ -1,4 +1,4 @@
-ARG GO_VERSION=1.21
+ARG GO_VERSION=1.22
 
 FROM mcr.microsoft.com/vscode/devcontainers/go:1-${GO_VERSION}-bullseye
 

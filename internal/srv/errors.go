@@ -14,4 +14,5 @@ var (
 	errInvalidHelmValues       = errors.New("unable to create helm values")
 	errLoadBalancerInit        = errors.New("unable to initialize loadbalancer data")
 	errNotMyMessage            = errors.New("message not for this location")
+	errMissingLocation         = errors.New("at least one location is required")
 )

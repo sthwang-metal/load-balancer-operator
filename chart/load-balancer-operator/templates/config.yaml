@@ -16,6 +16,7 @@ data:
   LOADBALANCEROPERATOR_METADATA_SOURCE: "{{ .Values.operator.metadata.source }}"
   LOADBALANCEROPERATOR_METADATA_STATUS_NAMESPACE_ID: "{{ .Values.operator.metadata.statusNamespaceID }}"
   LOADBALANCEROPERATOR_OIDC_CLIENT_ISSUER: "{{ .Values.operator.api.oidc.client.issuer }}"
+  LOADBALANCEROPERATOR_RECONCILER_INTERVAL: "{{ .Values.operator.reconciler.interval }}"
 {{- if .Values.operator.tracing.enabled }}
   LOADBALANCEROPERATOR_TRACING_ENABLED: "{{ .Values.operator.tracing.enabled }}"
   LOADBALANCEROPERATOR_TRACING_PROVIDER: "{{ .Values.operator.tracing.provider }}"

@@ -51,8 +51,7 @@ func (s *Server) processEvent(msg events.Message[events.EventMessage]) {
 			attribute.String("message.subject", m.SubjectID.String()),
 		)
 
-		ch := s.checkChannel(ctx, lb)
-		ch.writer <- &lbTask{lb: lb, ctx: ctx, evt: m.EventType, srv: s}
+		s.Runner.writer <- &lbTask{lb: lb, ctx: ctx, evt: m.EventType, srv: s}
 	}
 
 	// we need to Acknowledge that we received and processed the message,
@@ -88,8 +87,7 @@ func (s *Server) processChange(msg events.Message[events.ChangeMessage]) {
 			attribute.String("message.subject", m.SubjectID.String()),
 		)
 
-		ch := s.checkChannel(ctx, lb)
-		ch.writer <- &lbTask{lb: lb, ctx: ctx, evt: m.EventType, srv: s}
+		s.Runner.writer <- &lbTask{lb: lb, ctx: ctx, evt: m.EventType, srv: s}
 	}
 
 	// we need to Acknowledge that we received and processed the message,
@@ -97,25 +95,6 @@ func (s *Server) processChange(msg events.Message[events.ChangeMessage]) {
 	if err := msg.Ack(); err != nil {
 		s.Logger.Errorw("unable to acknowledge message", "error", err, "messageID", msg.ID())
 	}
-}
-
-func (s *Server) checkChannel(ctx context.Context, lb *loadBalancer) *runner {
-	ctx, span := otel.Tracer(instrumentationName).Start(ctx, "checkChannel")
-	defer span.End()
-
-	ch, ok := s.LoadBalancers[lb.loadBalancerID.String()]
-	if !ok {
-		span.SetAttributes(attribute.Bool("channel-exists", false))
-
-		r := NewRunner(ctx, process)
-
-		s.LoadBalancers[lb.loadBalancerID.String()] = r
-		ch = r
-	} else {
-		span.SetAttributes(attribute.Bool("channel-exists", true))
-	}
-
-	return ch
 }
 
 func prepareLoadBalancer[M Message](ctx context.Context, msg M, s *Server) (*loadBalancer, error) {
@@ -221,13 +200,6 @@ func process(t *lbTask) {
 		if err := t.srv.LoadBalancerStatusUpdate(t.ctx, t.lb.loadBalancerID, sts); err != nil {
 			t.srv.Logger.Errorw("failed to update metadata", "error", err, "loadbalancer", t.lb.loadBalancerID, "loadbalancerState", sts.State)
 		}
-
-		ch, ok := t.srv.LoadBalancers[t.lb.loadBalancerID.String()]
-		if ok {
-			ch.stop()
-		}
-
-		delete(t.srv.LoadBalancers, t.lb.loadBalancerID.String())
 
 		return
 	case t.evt == "ip-address.unassigned":

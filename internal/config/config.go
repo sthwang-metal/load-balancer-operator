@@ -2,6 +2,8 @@
 package config
 
 import (
+	"time"
+
 	"go.infratographer.com/x/gidx"
 	"go.infratographer.com/x/oauth2x"
 
@@ -13,12 +15,13 @@ import (
 
 // AppConfig contains the application configuration structure.
 var AppConfig struct {
-	Logging  loggingx.Config
-	Events   events.Config
-	Server   echox.Config
-	Tracing  otelx.Config
-	OIDC     OIDCClientConfig
-	Metadata MetadataConfig
+	Logging            loggingx.Config
+	Events             events.Config
+	Server             echox.Config
+	Tracing            otelx.Config
+	OIDC               OIDCClientConfig
+	Metadata           MetadataConfig
+	ReconcilerInterval time.Duration
 }
 
 // MetadataConfig stores the configuration for metadata

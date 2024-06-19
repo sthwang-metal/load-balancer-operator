@@ -88,7 +88,7 @@ func (suite *srvTestSuite) TestProcessChange() { //nolint:govet
 		Chart:            ch,
 		ValuesPath:       pwd + "/../../hack/ci/values.yaml",
 		Locations:        []string{"abcd1234"},
-		LoadBalancers:    make(map[string]*runner),
+		Runner:           InitLBTaskRunner(context.TODO()),
 	}
 
 	// TODO: check that namespace does not exist
@@ -199,7 +199,7 @@ func (suite *srvTestSuite) TestProcessEvent() { //nolint:govet
 		Chart:            ch,
 		ValuesPath:       pwd + "/../../hack/ci/values.yaml",
 		Locations:        []string{"abcd1234"},
-		LoadBalancers:    make(map[string]*runner),
+		Runner:           InitLBTaskRunner(context.TODO()),
 	}
 
 	_, err = srv.EventsConnection.PublishEvent(context.TODO(), "load-balancer-event", events.EventMessage{

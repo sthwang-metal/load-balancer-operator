@@ -2,6 +2,7 @@ package srv
 
 import (
 	"context"
+	"time"
 
 	"github.com/lestrrat-go/backoff/v2"
 	lbapi "go.infratographer.com/load-balancer-api/pkg/client"
@@ -13,6 +14,8 @@ import (
 	"k8s.io/client-go/rest"
 
 	"go.infratographer.com/ipam-api/pkg/ipamclient"
+
+	"go.infratographer.com/load-balancer-operator/internal/config"
 )
 
 // instrumentationName is a unique package name used for tracing
@@ -41,19 +44,35 @@ type Server struct {
 	ServicePortKey   string
 	ContainerPortKey string
 	MetricsPort      int
-	LoadBalancers    map[string]*runner
+	Runner           runner
 }
 
 // Run will start the server queue connections and healthcheck endpoints
 func (s *Server) Run(ctx context.Context) error {
-	// TODO: load up the loadbalancers that this operator is responsible for
-	s.LoadBalancers = make(map[string]*runner)
+	s.Runner = InitLBTaskRunner(ctx)
 
 	s.Echo.AddHandler(s)
 
 	go func() {
 		if err := s.Echo.Run(); err != nil {
 			s.Logger.Error("unable to start healthcheck server", zap.Error(err))
+		}
+	}()
+
+	go func() {
+		ticker := time.NewTicker(config.AppConfig.ReconcilerInterval)
+
+		for {
+			select {
+			case <-ctx.Done():
+				s.Logger.Info("reconciler done")
+
+				return
+			case <-ticker.C:
+				if err := s.Reconcile(ctx); err != nil {
+					s.Logger.Error("error reconciling load balancers", zap.Error(err))
+				}
+			}
 		}
 	}()
 
@@ -80,6 +99,8 @@ func (s *Server) Shutdown() error {
 		s.Logger.Debugw("Unable to shutdown connection", "error", err)
 		return err
 	}
+
+	s.Runner.stop()
 
 	return nil
 }
@@ -117,4 +138,9 @@ func (s *Server) configureSubscribers(ctx context.Context) error {
 	s.eventChannels = ev
 
 	return nil
+}
+
+func InitLBTaskRunner(ctx context.Context) runner {
+	r := NewRunner(ctx, process)
+	return *r
 }
