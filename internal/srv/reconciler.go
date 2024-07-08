@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+	"time"
 
 	lbapi "go.infratographer.com/load-balancer-api/pkg/client"
 	"go.infratographer.com/x/events"
@@ -16,6 +17,29 @@ import (
 
 // OperatorManagedLabelKey is the label key for the operator managed namespaces
 var OperatorManagedLabelKey = "com.infratographer.lb-operator/managed"
+
+func (s *Server) ReconcileTimer(ctx context.Context, interval time.Duration) error {
+	if interval <= 0 {
+		return errMissingReconcilerInterval
+	}
+
+	ticker := time.NewTicker(interval)
+
+	for {
+		select {
+		case <-ctx.Done():
+			s.Logger.Info("reconciler done")
+
+			return nil
+		case <-ticker.C:
+			s.Logger.Info("starting reconciler run")
+
+			if err := s.Reconcile(ctx); err != nil {
+				return err
+			}
+		}
+	}
+}
 
 // Reconcile will reconcile out of sync load balancers
 func (s *Server) Reconcile(ctx context.Context) error {
@@ -70,6 +94,7 @@ func (s *Server) Reconcile(ctx context.Context) error {
 
 	s.Logger.Debugf("actual lbs: %+v\n", actualLBs)
 
+	// add load balancers
 	toAddLBs := difference(expectedLBs, actualLBs)
 	s.Logger.Infof("LBs to add: %+v", toAddLBs)
 
@@ -77,6 +102,7 @@ func (s *Server) Reconcile(ctx context.Context) error {
 		s.Logger.Error("Error reconciling (adding) missing lbs:", err)
 	}
 
+	// remove load balancers
 	toRemoveLBs := difference(actualLBs, expectedLBs)
 	s.Logger.Infof("LBs to remove: %+v", toRemoveLBs)
 
@@ -161,7 +187,7 @@ func (s *Server) addLBs(ctx context.Context, lbs []string) error {
 		lb, err := s.getLoadBalancer(ctx, lbID, evt)
 
 		if err != nil {
-			s.Logger.Debug("Error getting lb from api: ", err)
+			s.Logger.Warn("Error getting lb from api: ", err)
 			e = errors.Join(e, err)
 
 			continue
@@ -177,7 +203,7 @@ func (s *Server) addLBs(ctx context.Context, lbs []string) error {
 		s.Runner.writer <- task
 	}
 
-	return nil
+	return e
 }
 
 func (s *Server) getLoadBalancer(ctx context.Context, lbID string, evt events.ChangeType) (*loadBalancer, error) {

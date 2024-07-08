@@ -2,7 +2,6 @@ package srv
 
 import (
 	"context"
-	"time"
 
 	"github.com/lestrrat-go/backoff/v2"
 	lbapi "go.infratographer.com/load-balancer-api/pkg/client"
@@ -14,8 +13,6 @@ import (
 	"k8s.io/client-go/rest"
 
 	"go.infratographer.com/ipam-api/pkg/ipamclient"
-
-	"go.infratographer.com/load-balancer-operator/internal/config"
 )
 
 // instrumentationName is a unique package name used for tracing
@@ -56,28 +53,6 @@ func (s *Server) Run(ctx context.Context) error {
 	go func() {
 		if err := s.Echo.Run(); err != nil {
 			s.Logger.Error("unable to start healthcheck server", zap.Error(err))
-		}
-	}()
-
-	go func() {
-		if config.AppConfig.ReconcilerInterval <= 0 {
-			s.Logger.Warn("reconciler interval not set")
-			return
-		}
-
-		ticker := time.NewTicker(config.AppConfig.ReconcilerInterval)
-
-		for {
-			select {
-			case <-ctx.Done():
-				s.Logger.Info("reconciler done")
-
-				return
-			case <-ticker.C:
-				if err := s.Reconcile(ctx); err != nil {
-					s.Logger.Error("error reconciling load balancers", zap.Error(err))
-				}
-			}
 		}
 	}()
 

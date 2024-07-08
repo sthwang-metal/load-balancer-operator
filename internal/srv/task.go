@@ -15,6 +15,7 @@ type runner struct {
 	quit       chan struct{}
 	buffer     []*lbTask
 	taskRunner func(*lbTask)
+	ctx        context.Context
 }
 
 type lbTask struct {
@@ -40,6 +41,8 @@ func (r *runner) run() {
 
 	for {
 		select {
+		case <-r.ctx.Done():
+			return
 		case <-r.quit:
 			return
 		default:
@@ -72,6 +75,7 @@ func NewRunner(ctx context.Context, tr taskRunner) *runner {
 		buffer:     make([]*lbTask, 0),
 		quit:       make(chan struct{}),
 		taskRunner: tr,
+		ctx:        ctx,
 	}
 
 	go r.run()

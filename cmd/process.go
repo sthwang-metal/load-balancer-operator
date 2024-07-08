@@ -128,6 +128,7 @@ func process(ctx context.Context, logger *zap.SugaredLogger) error {
 	}
 
 	cx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
 	eSrv, err := echox.NewServer(
 		logger.Desugar(),
@@ -194,6 +195,17 @@ func process(ctx context.Context, logger *zap.SugaredLogger) error {
 		logger.Fatalw("failed to initialize tracer", "error", err)
 	}
 
+	go func() {
+		defer cancel()
+
+		err := server.ReconcileTimer(ctx, config.AppConfig.ReconcilerInterval)
+		if err != nil {
+			logger.Error("error reconciling load balancers", zap.Error(err))
+		}
+
+		logger.Warn("reconciler stopped")
+	}()
+
 	if err := server.Run(cx); err != nil {
 		logger.Fatalw("failed starting server", "error", err)
 		cancel()
@@ -202,10 +214,13 @@ func process(ctx context.Context, logger *zap.SugaredLogger) error {
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt)
 
-	recvSig := <-sigCh
-	signal.Stop(sigCh)
-	cancel()
-	logger.Infof("exiting. Performing necessary cleanup", recvSig)
+	select {
+	case <-server.Context.Done():
+		logger.Info("context done signal received")
+	case recvSig := <-sigCh:
+		signal.Stop(sigCh)
+		logger.Infof("exiting. Performing necessary cleanup", recvSig)
+	}
 
 	if err := server.Shutdown(); err != nil {
 		logger.Errorw("failed to shutdown server", zap.Error(err))
